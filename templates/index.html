@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise das notas do ENEM</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Análise das notas do ENEM</h1>
+        <form action="/result" method="post">
+            <label for="ano">Ano:</label>
+            <select name="ano" id="ano">
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+            </select>
+            <br>
+            <label for="disciplina">Disciplina:</label>
+            <select name="disciplina" id="disciplina">
+                <option value="matemática">Matemática</option>
+                <option value="redação">Redação</option>
+                <option value="natureza">Ciências da Natureza</option>
+                <option value="humanas">Ciências Humanas</option>
+                <option value="linguagens">Linguagens e Códigos</option>
+            </select>
+            <br>
+            <label for="metrica">Métrica:</label>
+            <select name="metrica" id="metrica">
+                <option value="média">Média</option>
+            </select>
+            <br>
+            <label for="criterio">Critério:</label>
+            <select name="criterio" id="criterio">
+                <option value="tipo de escola">Tipo de escola</option>
+                <option value="renda familiar">Renda familiar</option>
+                <option value="acesso à internet">Acesso à internet</option>
+                <option value="escolaridade da mãe">Escolaridade da mãe</option>
+                <option value="estado">Estado (UF)</option>
+                <option value="cor_raca">Cor/raça</option>
+            </select>
+            <br>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -7,7 +7,8 @@ app = Flask(__name__)
 # Caminhos para os arquivos CSV de 2022 e 2023
 csv_paths = {
     '2023': "C:\\Users\\marco\\OneDrive\\MICRODADOS_ENEM_2023.csv",
-    '2022': "C:\\Users\\marco\\OneDrive\\MICRODADOS_ENEM_2022.csv"
+    '2022': "C:\\Users\\marco\\OneDrive\\MICRODADOS_ENEM_2022.csv",
+    '2021': "C:\\Users\\marco\\OneDrive\\MICRODADOS_ENEM_2021.csv"
 }
 
 data = {}

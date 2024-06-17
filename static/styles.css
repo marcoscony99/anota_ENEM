@@ -20,6 +20,13 @@ h1 {
     padding-bottom: 10px;
 }
 
+h2 {
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-top: 20px;
+}
+
 form {
     margin-bottom: 20px;
 }
@@ -52,6 +59,12 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+thead {
+    background-color: #f2f2f2;
 }
 
 th, td {
@@ -61,7 +74,8 @@ th, td {
 }
 
 th {
-    background-color: #f2f2f2;
+    background-color: #4CAF50;
+    color: white;
 }
 
 tr:nth-child(even) {
@@ -70,4 +84,11 @@ tr:nth-child(even) {
 
 tr:hover {
     background-color: #f1f1f1;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px 0;
 }

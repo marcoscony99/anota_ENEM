@@ -1,10 +1,15 @@
 from flask import Flask, render_template, request
 import pandas as pd
 import os
+import matplotlib
+matplotlib.use('Agg')  # Defina o backend antes de importar pyplot
+import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
 
 app = Flask(__name__)
 
-# Caminhos para os arquivos CSV de 2022 e 2023
+# Caminhos para os arquivos CSV de 2022, 2023 e 2021
 csv_paths = {
     '2023': "C:\\Users\\marco\\OneDrive\\MICRODADOS_ENEM_2023.csv",
     '2022': "C:\\Users\\marco\\OneDrive\\MICRODADOS_ENEM_2022.csv",
@@ -45,20 +50,20 @@ tipo_escola_dict = {
 faixa_renda_dict = {
     'A': 'Nenhuma Renda',
     'B': 'Até R$ 1.320,00',
-    'C': 'De R$ 1.320,01 até R$ 1.980,00',
-    'D': 'De R$ 1.980,01 até R$ 2.640,00',
-    'E': 'De R$ 2.640,01 até R$ 3.300,00',
-    'F': 'De R$ 3.300,01 até R$ 3.960,00',
-    'G': 'De R$ 3.960,01 até R$ 5.280,00',
-    'H': 'De R$ 5.280,01 até R$ 6.600,00',
-    'I': 'De R$ 6.600,01 até R$ 7.920,00',
-    'J': 'De R$ 7.920,01 até R$ 9.240,00',
-    'K': 'De R$ 9.240,01 até R$ 10.560,00',
-    'L': 'De R$ 10.560,01 até R$ 11.880,00',
-    'M': 'De R$ 11.880,01 até R$ 13.200,00',
-    'N': 'De R$ 13.200,01 até R$ 15.840,00',
-    'O': 'De R$ 15.840,01 até R$ 19.800,00',
-    'P': 'De R$ 19.800,01 até R$ 26.400,00',
+    'C': 'R$ 1.320,01 a R$ 1.980,00',
+    'D': 'R$ 1.980,01 a R$ 2.640,00',
+    'E': 'R$ 2.640,01 a R$ 3.300,00',
+    'F': 'R$ 3.300,01 a R$ 3.960,00',
+    'G': 'R$ 3.960,01 a R$ 5.280,00',
+    'H': 'R$ 5.280,01 a R$ 6.600,00',
+    'I': 'R$ 6.600,01 a R$ 7.920,00',
+    'J': 'R$ 7.920,01 a R$ 9.240,00',
+    'K': 'R$ 9.240,01 a R$ 10.560,00',
+    'L': 'R$ 10.560,01 a R$ 11.880,00',
+    'M': 'R$ 11.880,01 a R$ 13.200,00',
+    'N': 'R$ 13.200,01 a R$ 15.840,00',
+    'O': 'R$ 15.840,01 a R$ 19.800,00',
+    'P': 'R$ 19.800,01 a R$ 26.400,00',
     'Q': 'Acima de R$ 26.400,00'
 }
 
@@ -125,81 +130,109 @@ def index():
 
 @app.route('/result', methods=['POST'])
 def result():
+    anos = request.form.getlist('ano')
     disciplina = request.form.get('disciplina')
     metrica = request.form.get('metrica')
     criterio = request.form.get('criterio')
-    ano = request.form.get('ano')
 
-    if not disciplina or not metrica or not criterio or not ano:
+    if not disciplina or not metrica or not criterio or not anos:
         return "Dados do formulário incompletos.", 400
 
-    if ano not in data:
-        return "Ano inválido.", 400
+    resultados = {}
+    grafico = None
 
-    filtered_data = filter_data(disciplina, metrica, criterio, ano)
-    disciplina_nome = disciplinas_dict.get(disciplina, 'Desconhecido')
+    for ano in sorted(anos):  # Ordena os anos em ordem crescente
+        if ano not in data:
+            return f"Ano inválido: {ano}", 400
 
-    if criterio == 'tipo de escola':
-        formatted_data = {tipo_escola_dict.get(float(key), 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
-    elif criterio == 'renda familiar':
-        formatted_data = {faixa_renda_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
-    elif criterio == 'acesso à internet':
-        formatted_data = {acesso_internet_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
-    elif criterio == 'escolaridade da mãe':
-        formatted_data = {escolaridade_mae_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
-    elif criterio == 'estado':
-        formatted_data = {estado_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
-    elif criterio == 'cor_raca':
-        formatted_data = {cor_raca_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
+        filtered_data = filter_data(disciplina, metrica, criterio, ano)
+        disciplina_nome = disciplinas_dict.get(disciplina, 'Desconhecido')
 
-    else:
-        formatted_data = {key: round(value, 1) for key, value in filtered_data.items()}
+        if criterio == 'tipo de escola':
+            formatted_data = {tipo_escola_dict.get(float(key), 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
+        elif criterio == 'renda familiar':
+            formatted_data = {faixa_renda_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
+        elif criterio == 'acesso à internet':
+            formatted_data = {acesso_internet_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
+        elif criterio == 'escolaridade da mãe':
+            formatted_data = {escolaridade_mae_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
+        elif criterio == 'estado':
+            formatted_data = {estado_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
+        elif criterio == 'cor_raca':
+            formatted_data = {cor_raca_dict.get(key, 'Desconhecido'): round(value, 1) for key, value in filtered_data.items()}
+        else:
+            formatted_data = {key: round(value, 1) for key, value in filtered_data.items()}
 
-    return render_template('result.html', result_data=formatted_data, criterio=criterio, disciplina=disciplina_nome, ano=ano)
+        resultados[ano] = {'disciplina': disciplina_nome, 'criterio': criterio, 'data': formatted_data}
+
+        # Gerar gráfico
+        if grafico is None:
+            img = BytesIO()
+            plt.figure(figsize=(10, 6))
+
+           
+        if len(anos) == 1:
+            plt.bar(formatted_data.keys(), formatted_data.values())
+            plt.xlabel('Categoria')
+            plt.ylabel('Média')
+            plt.title(f'{disciplina_nome} - {criterio} ({ano})')
+            plt.xticks(rotation=45, ha="right")
+        else:
+            for categoria in formatted_data.keys():
+                plt.plot(list(resultados.keys()), [resultados[a]['data'].get(categoria, None) for a in resultados], label=categoria)
+            plt.xlabel('Ano')
+            plt.ylabel('Média')
+            plt.title(f'{disciplina_nome} - desempenho por {criterio}')
+            plt.legend()
+
+        plt.tight_layout()
+        plt.savefig(img, format='png')
+        plt.close()
+        img.seek(0)
+        grafico = base64.b64encode(img.getvalue()).decode()
+
+    return render_template('result.html', resultados=resultados, grafico=grafico)
 
 def filter_data(disciplina, metrica, criterio, ano):
-    colunas_disciplinas = {
-        'matemática': 'NU_NOTA_MT',
-        'redação': 'NU_NOTA_REDACAO',
-        'natureza': 'NU_NOTA_CN',
-        'humanas': 'NU_NOTA_CH',
-        'linguagens': 'NU_NOTA_LC'
-    }
+    if disciplina == 'matemática':
+        coluna_disciplina = 'NU_NOTA_MT'
+    elif disciplina == 'redação':
+        coluna_disciplina = 'NU_NOTA_REDACAO'
+    elif disciplina == 'natureza':
+        coluna_disciplina = 'NU_NOTA_CN'
+    elif disciplina == 'humanas':
+        coluna_disciplina = 'NU_NOTA_CH'
+    elif disciplina == 'linguagens':
+        coluna_disciplina = 'NU_NOTA_LC'
+    else:
+        raise ValueError("Disciplina inválida")
 
-    col = colunas_disciplinas.get(disciplina)
-    df = data.get(ano)
-
-    if not col or df is None or df.empty:
-        return {}
+    if metrica == 'média':
+        metrica_func = 'mean'
+    elif metrica == 'mediana':
+        metrica_func = 'median'
+    else:
+        raise ValueError("Métrica inválida")
 
     if criterio == 'tipo de escola':
-        data_cleaned = df.dropna(subset=[col, 'TP_ESCOLA'])
-        result = data_cleaned.groupby('TP_ESCOLA')[col].mean().reset_index()
-        result_data = {str(row['TP_ESCOLA']): row[col] for index, row in result.iterrows()}
+        coluna_criterio = 'TP_ESCOLA'
     elif criterio == 'renda familiar':
-        data_cleaned = df.dropna(subset=[col, 'Q006'])
-        result = data_cleaned.groupby('Q006')[col].mean().reset_index()
-        result_data = {row['Q006']: row[col] for index, row in result.iterrows()}
+        coluna_criterio = 'Q006'
     elif criterio == 'acesso à internet':
-        data_cleaned = df.dropna(subset=[col, 'Q025'])
-        result = data_cleaned.groupby('Q025')[col].mean().reset_index()
-        result_data = {row['Q025']: row[col] for index, row in result.iterrows()}
+        coluna_criterio = 'Q025'
     elif criterio == 'escolaridade da mãe':
-        data_cleaned = df.dropna(subset=[col, 'Q002'])
-        result = data_cleaned.groupby('Q002')[col].mean().reset_index()
-        result_data = {row['Q002']: row[col] for index, row in result.iterrows()}
+        coluna_criterio = 'Q002'
     elif criterio == 'estado':
-        data_cleaned = df.dropna(subset=[col, 'SG_UF_PROVA'])
-        result = data_cleaned.groupby('SG_UF_PROVA')[col].mean().reset_index()
-        result_data = {row['SG_UF_PROVA']: row[col] for index, row in result.iterrows()}
+        coluna_criterio = 'SG_UF_PROVA'
     elif criterio == 'cor_raca':
-        data_cleaned = df.dropna(subset=[col, 'TP_COR_RACA'])
-        result = data_cleaned.groupby('TP_COR_RACA')[col].mean().reset_index()
-        result_data = {row['TP_COR_RACA']: row[col] for index, row in result.iterrows()}
+        coluna_criterio = 'TP_COR_RACA'
     else:
-        return {}
+        raise ValueError("Critério inválido")
 
-    return result_data
+    df = data[ano]
+    filtered_data = df.groupby(coluna_criterio)[coluna_disciplina].agg(metrica_func)
+    return filtered_data.to_dict()
 
 if __name__ == '__main__':
+    plt.switch_backend('Agg')
     app.run(debug=True)

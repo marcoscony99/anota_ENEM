@@ -2,129 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise das notas do ENEM</title>
+    <title>Resultados</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Análise das notas do ENEM {{ ano }}</h1>
-        {% if result_data %}
-            {% if criterio == 'tipo de escola' %}
-                <h2>{{ disciplina }} - resultado por tipo de escola:</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tipo de Escola</th>
-                            <th>Nota média</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for tipo_escola, media_nota in result_data.items() %}
-                            <tr>
-                                <td>{{ tipo_escola }}</td>
-                                <td>{{ media_nota|round(1) }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% elif criterio == 'renda familiar' %}
-                <h2>{{ disciplina }} - resultado por renda familiar:</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Renda Familiar</th>
-                            <th>Nota média</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for renda, media_nota in result_data.items() %}
-                            <tr>
-                                <td>{{ renda }}</td>
-                                <td>{{ media_nota|round(1) }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% elif criterio == 'acesso à internet' %}
-                <h2>{{ disciplina }} - resultado por acesso à internet:</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Acesso à Internet</th>
-                            <th>Nota média</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for acesso, media_nota in result_data.items() %}
-                            <tr>
-                                <td>{{ acesso }}</td>
-                                <td>{{ media_nota|round(1) }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% elif criterio == 'escolaridade da mãe' %}
-                <h2>{{ disciplina }} - resultado por escolaridade da mãe:</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Escolaridade da Mãe</th>
-                            <th>Nota média</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for escolaridade, media_nota in result_data.items() %}
-                            <tr>
-                                <td>{{ escolaridade }}</td>
-                                <td>{{ media_nota|round(1) }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% elif criterio == 'estado' %}
-                <h2>{{ disciplina }} - resultado por estado:</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Estado</th>
-                            <th>Nota média</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for estado, media_nota in result_data.items() %}
-                            <tr>
-                                <td>{{ estado }}</td>
-                                <td>{{ media_nota|round(1) }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% elif criterio == 'cor_raca' %}
-                <h2>{{ disciplina }} - resultado por cor/raça:</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cor/Raça</th>
-                            <th>Nota média</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cor_raca, media_nota in result_data.items() %}
-                            <tr>
-                                <td>{{ cor_raca }}</td>
-                                <td>{{ media_nota|round(1) }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>O critério "{{ criterio }}" não é válido.</p>
-            {% endif %}
-        {% else %}
-            <p>Nenhum resultado disponível.</p>
+        <h1>Resultados</h1>
+
+        {% for ano, resultado in resultados.items() %}
+        <h2>{{ resultado['disciplina'] }} - {{ resultado['criterio'] }} ({{ ano }})</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Categoria</th>
+                    <th>Média</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for categoria, media in resultado['data'].items() %}
+                <tr>
+                    <td>{{ categoria }}</td>
+                    <td>{{ media }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        {% endfor %}
+
+        {% if grafico %}
+        <h2>Gráfico</h2>
+        <img src="data:image/png;base64,{{ grafico }}" alt="Gráfico">
         {% endif %}
-        <a href="/" class="btn btn-primary mt-3">Voltar</a>
     </div>
 </body>
 </html>
